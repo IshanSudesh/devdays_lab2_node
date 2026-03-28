@@ -1,31 +1,38 @@
-# Copilot Instructions
+# Mona Mayhem – Copilot Instructions
 
 ## Project Overview
 
-**Mona Mayhem** is a retro arcade-themed GitHub Contribution Battle Arena built with Astro 5. Users compare two GitHub usernames' contribution graphs in a game-like UI.
+**Mona Mayhem** is a GitHub Contribution Battle Arena built with Astro (SSR) and the Node.js adapter. Users can compare GitHub contribution stats head-to-head via a web UI backed by a server-side API.
 
-- Entry page: `src/pages/index.astro`
-- Contributions API: `src/pages/api/contributions/[username].ts` — dynamic SSR route that should fetch `https://github.com/{username}` contribution data and return JSON
+- Framework: [Astro](https://astro.build) v5 with `output: 'server'` (SSR)
+- Adapter: `@astrojs/node` (standalone mode)
+- Language: TypeScript
 
 ## Build & Dev Commands
 
 ```bash
-npm run dev       # Start local dev server (http://localhost:4321)
-npm run build     # Production build
-npm run preview   # Preview production build
+npm run dev       # Start dev server (localhost:4321)
+npm run build     # Build for production (outputs to dist/)
+npm run preview   # Preview production build locally
 ```
 
-## Architecture
+## Project Structure
 
-- **Astro 5 SSR** — `output: 'server'` with `@astrojs/node` standalone adapter; no static pre-rendering by default
-- **API routes** use `export const prerender = false` and export a named `GET` (or other HTTP verb) handler returning a `Response`
-- **TypeScript strict mode** via `astro/tsconfigs/strict`
+```
+src/
+  pages/
+    index.astro                        # Home page
+    api/contributions/[username].ts    # REST endpoint: GET /api/contributions/:username
+public/                                # Static assets
+```
 
 ## Astro Best Practices
 
-- Keep data fetching in the frontmatter (`---` block) of `.astro` files; pass data as props to components
-- Use `Astro.params` for dynamic route params (e.g., `[username].ts` → `Astro.params.username`)
-- API routes live under `src/pages/api/` and return `new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } })`
-- Prefer native `fetch` for external HTTP calls — no extra HTTP libraries needed
-- Scope CSS inside `.astro` components with `<style>` (automatically scoped); use `<style is:global>` only for resets/themes
-- No UI framework (React/Vue/etc.) is installed — use Astro components and vanilla JS `<script>` tags
+- **Pages** live in `src/pages/`. File name determines the route (e.g. `src/pages/about.astro` → `/about`).
+- **Frontmatter** (`---` blocks) in `.astro` files runs server-side only; keep data fetching and logic here.
+- **API routes** export named handlers (`GET`, `POST`, etc.) typed as `APIRoute` from `astro`.
+- **SSR mode**: `prerender` defaults to `false` for all routes. Explicitly set `export const prerender = true` only for routes that should be statically generated.
+- **Components**: Reusable UI goes in `src/components/` as `.astro` files; use `Astro.props` with a typed `Props` interface.
+- **Environment variables**: Access server-only secrets via `import.meta.env` in frontmatter or API routes — never in client scripts.
+- **Client interactivity**: Add `<script>` tags inside `.astro` files for lightweight client JS; use a UI framework integration (React, Svelte, etc.) only when needed.
+- **Styles**: Scoped styles go inside `<style>` in `.astro` files; global styles belong in `public/` or imported in a layout.
